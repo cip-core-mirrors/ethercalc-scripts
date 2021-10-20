@@ -76,8 +76,11 @@ async function save_blips() {
     const data = await loadEthercalc()
 
     const parsedData = parse_blips_data(data)
+    const defaultBlipEditors = parsedData.parameters.defaultBlipEditors ? parsedData.parameters.defaultBlipEditors.split(',') : undefined;
+
     const response = await save_raw_blips({
         blips: parsedData.blips,
+        defaultBlipEditors: defaultBlipEditors,
     });
     await save_blip_links({
         links: parsedData.links,
@@ -153,7 +156,7 @@ function parse_blips_data(data) {
 }
 
 async function save_raw_blips(data) {
-    return await fetch(databaseUrl, {
+    return await fetch(databaseUrl + '/anonymous', {
         method: 'PUT',
         headers: {
             'Accept': 'application/json',
@@ -166,7 +169,7 @@ async function save_raw_blips(data) {
 }
 
 async function save_blip_links(data) {
-    return await fetch(`${databaseUrl}/radar/${radarId}`, {
+    return await fetch(`${databaseUrl}/anonymous/radar/${radarId}`, {
         method: 'PUT',
         headers: {
             'Accept': 'application/json',
