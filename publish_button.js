@@ -76,7 +76,8 @@ async function save_blips() {
     const data = await loadEthercalc()
 
     const parsedData = parse_blips_data(data)
-    const defaultBlipEditors = parsedData.parameters.defaultBlipEditors ? parsedData.parameters.defaultBlipEditors.split(',') : undefined;
+    const defaultBlipEditorsParam = parsedData.parameters.filter(param => param.name === 'defaultBlipEditors')[0];
+    const defaultBlipEditors = defaultBlipEditorsParam ? defaultBlipEditorsParam.value.split(',') : undefined;
 
     const response = await save_raw_blips({
         blips: parsedData.blips,
