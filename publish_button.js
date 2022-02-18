@@ -1,10 +1,12 @@
 const databaseUrl = document.currentScript.getAttribute('data-url')
 
 let radarId;
+let radarAuthor;
 let blipsVersion;
 
-getRadarId().then(async function(x) {
-    radarId = x
+async function loadRadarMetadata() {
+    radarId = await getRadarId();
+    
     try {
         const response = await fetch(`${databaseUrl}/radar/${radarId}`, {
             method: 'GET',
@@ -23,7 +25,9 @@ getRadarId().then(async function(x) {
     } catch (e) {
         blipsVersion = 0;
     }
-});
+}
+
+loadRadarMetadata();
 
 async function loadEthercalc() {
     const url = `${window.location.pathname}.csv.json`
@@ -76,16 +80,19 @@ async function save_blips() {
     const data = await loadEthercalc()
 
     const parsedData = parse_blips_data(data)
-    const defaultBlipEditorsParam = parsedData.parameters.filter(param => param.name === 'defaultBlipEditors')[0];
-    const defaultBlipEditors = defaultBlipEditorsParam ? defaultBlipEditorsParam.value.split(',') : undefined;
+    const defaultBlipEditors = parsedData.parameters.defaultBlipEditors ? parsedData.parameters.defaultBlipEditors.split(',') : undefined;
 
     const response = await save_raw_blips({
         blips: parsedData.blips,
         defaultBlipEditors: defaultBlipEditors,
     });
+
     await save_blip_links({
         links: parsedData.links,
         parameters: parsedData.parameters,
+        userInfo: {
+            mail: radarAuthor,
+        },
     });
 
     const json = await response.json()
@@ -130,6 +137,9 @@ function parse_blips_data(data) {
             }
             if (radarParam.name === 'sheetId') { // Override radarId
                 radarId = radarParam.value
+            }
+            if (radarParam.name === 'sheetAuthor') { // Override radarAuthor
+                radarAuthor = radarParam.value
             }
             parameters.push(radarParam)
         } else {
